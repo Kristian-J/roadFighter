@@ -10,6 +10,7 @@ let velocity = 3;
 // counters
 let counterOne = 0; //enemy spawn timer.
 let inceptionPoint = 10;// enemy spawn time threshold
+let counterTwo = 0;
 
 // game core values
 let difficulty = 0.3;
@@ -28,6 +29,7 @@ let enemyImg;
 // flags
 let crash = Boolean;
 let run = Boolean;
+let mainMenu = true;
 let playerMoved = false;
 
 // background control perams
@@ -60,7 +62,6 @@ let seasons = [
 
 // redundent variables 
 let roadImgs = [];
-let counterTwo = 0;
 
 function drawNewEnemy(){
 //    newEnemy = createSprite(random(50, width - 50), -50, 20, 50);
@@ -89,6 +90,7 @@ function drawNewEnemy(){
 function drawScenery(){
     return
 }
+
 function drawLives(){
     let pos = 50;
     for(i=0; i< 10; i++){
@@ -145,7 +147,7 @@ function isInTransition(){
 }
 
 function preload() {
-    playerImg = loadImage("images/testing/tilea002.png");
+    playerImg = loadImage("images/testing/tile002.png");
     enemyImg = loadImage("images/car004.png");
 //    print(playerImg);
 //    sequenceAnimation = loadAnimation('images/heart/tile000.png', 'images/heart/tile007.png');
@@ -155,7 +157,7 @@ function setup() {
   // put setup code here
     angleMode(DEGREES);
 //    print(velocity);
-    createCanvas(550, 750);
+    thisCanvas = createCanvas(550, 750);
     
     var localCount = 0;
     for(p = -30; p < height + 50; p+= 50){
@@ -186,11 +188,13 @@ function draw() {
 //        }
         drawNewEnemy();
     }
-//    updateSpeed();
-//    print(enemies.length)
+    
     for(i = 0; i< enemies.length; i++){
         enemies[i].thisSprite.setSpeed(1+ velocity, 90)
-        if(enemies[i].thisSprite.position.y > height + 100){enemies.splice(i, 1); print('removed');}
+        if(enemies[i].thisSprite.position.y > height + 100){
+            enemies.splice(i, 1); 
+            print('removed');
+        }
 //        print('updated')
     }
     
@@ -219,6 +223,7 @@ function draw() {
     rect(0, 0, 100, height);
     rect(width - 100, 0, 100, height);
     rectMode(CENTER);
+//    drawScenery();
     
     // draw enemies;
     for(i=0; i<enemies.length; i++){
