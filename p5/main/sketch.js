@@ -1,31 +1,66 @@
-enemies = [];
+// sprite set holders
+let enemies = [];
+let lines = [];
 let player;
+
+// player default values
 let playerX = 100;
-roadImgs = [];
-lines = [];
-velocity = 3;
-let counterOne = 0;
-let counterTwo;
-let inceptionPoint = 10;
+let velocity = 3;
+
+// counters
+let counterOne = 0; //enemy spawn timer.
+let inceptionPoint = 10;// enemy spawn time threshold
+
+// game core values
 let difficulty = 0.3;
 let lifeNum = 3;
 let lives = [];
 let score = 0;
+// additional game control values
+let season = 1;
+
+
+// image sets
 let heartImg = [];
 let playerImg;
-let seasons = {
-    summer: {
+let enemyImg;
+
+// flags
+let crash = Boolean;
+let run = Boolean;
+let playerMoved = false;
+
+// background control perams
+let seasons = [
+     {
+        name: 'Summer',
+        r: 11,
+        g: 102,
+        b: 35
+    },
+    {
+        name: 'Winter',
+        r: 220,
+        g: 230,
+        b: 255
+    }, 
+    {
+        name: 'Spring',
+        r: 0,
+        g: 168,
+        b: 107
+    }, 
+    {
+        name: 'Autumn',
         r: 200,
         g: 200,
         b: 100
-    },
-    winter:{
-        r: 250,
-        g: 250,
-        b: 255
-    }, 
-}
+    } 
+]
 
+// redundent variables 
+let roadImgs = [];
+let counterTwo = 0;
 
 function drawNewEnemy(){
 //    newEnemy = createSprite(random(50, width - 50), -50, 20, 50);
@@ -34,10 +69,11 @@ function drawNewEnemy(){
         r: random(50,255),
         g: random(50,255),
         b: random(50,255),
-        thisSprite: undefined
+        thisSprite: undefined,
+        scored: false
     }
     
-    print(tempEnemy.r, tempEnemy.g, tempEnemy.b);
+//    print(tempEnemy.r, tempEnemy.g, tempEnemy.b);
     tempSprite = createSprite(random(110, width - 110), -50, 20, 50)
     tempSprite.addImage(enemyImg,40,50);
     tempEnemy.thisSprite = tempSprite;
@@ -46,7 +82,7 @@ function drawNewEnemy(){
     
     append(enemies, tempEnemy);
     
-    inceptionPoint = random(30, 120);
+    inceptionPoint = random(60 - velocity * 2, 120);
     counterOne = 0;
     print('enemy created');
 }
@@ -63,7 +99,7 @@ function drawLives(){
         append(lives, temp);
         pos += 50;
     }
-    print(lives[0]);
+//    print(lives[0]);
     return
 }
 
@@ -78,12 +114,16 @@ function updateSpeed(){
 
 function positionManager(){
     if(keyIsDown(RIGHT_ARROW)){
-        if(playerX < width - 50){playerX += (0 + velocity * 0.6)}
-        print("RIGHT");
+        if(playerX < width - 120){playerX += (0 + velocity * 0.6)}
+        if(!playerMoved){
+            playerMoved = true
+        }
     }
     if(keyIsDown(LEFT_ARROW)){
-        if(playerX >  50){playerX -=  (0 + velocity * 0.6)}
-        print("RIGHT");
+        if(playerX >  120){playerX -=  (0 + velocity * 0.6)}
+        if(!playerMoved){
+            playerMoved = true
+        }
     }
     if(keyIsDown(UP_ARROW)){
         if(velocity < 8){velocity += 0.1;}
@@ -103,20 +143,21 @@ function keyManager(key){
 function isInTransition(){
     return
 }
+
 function preload() {
     playerImg = loadImage("images/testing/tilea002.png");
     enemyImg = loadImage("images/car004.png");
-    print(playerImg);
+//    print(playerImg);
 //    sequenceAnimation = loadAnimation('images/heart/tile000.png', 'images/heart/tile007.png');
 }
+
 function setup() {
   // put setup code here
     angleMode(DEGREES);
-    print(velocity)
+//    print(velocity);
     createCanvas(550, 750);
-    playerX = width/2;
-    var localCount = 0;
     
+    var localCount = 0;
     for(p = -30; p < height + 50; p+= 50){
         lines[localCount] = createSprite(width /2, p, 2, 25);
         lines[localCount].setSpeed(velocity, 90);
@@ -124,6 +165,7 @@ function setup() {
         localCount++;
     }
     
+    playerX = width/2;
     player = createSprite(playerX, height-100, 20, 40);
 //    player.addImage("images/car002.png", 35,50);
     playerImg.resize(40,0);
@@ -145,43 +187,99 @@ function draw() {
         drawNewEnemy();
     }
 //    updateSpeed();
-    print(enemies.length)
+//    print(enemies.length)
     for(i = 0; i< enemies.length; i++){
         enemies[i].thisSprite.setSpeed(1+ velocity, 90)
         if(enemies[i].thisSprite.position.y > height + 100){enemies.splice(i, 1); print('removed');}
 //        print('updated')
     }
     
+    // update the player position
     player.position.x = playerX;
     
+    //draw background
+    background(100);
+    
+    //draw road lines
     for(i = 0; i<lines.length; i++){
         lines[i].setSpeed(velocity, 90);
 //        print(lines[i].position.y);
         if(lines[i].position.y > height + 68) {
-            lines[i].position.y = -30
+            lines[i].position.y = -30;
         }
+        drawSprite(lines[i]);
+//        print(lines[lines.length-1].position.y);
     }
-    background(100);
-    fill(200, 200, 100);
+    
+    // draw scenery
+    let red = seasons[season].r
+    let green = seasons[season].g
+    let blue = seasons[season].b
+    fill(seasons[season].r,seasons[season].g, seasons[season].b);
     rect(0, 0, 100, height);
     rect(width - 100, 0, 100, height);
     rectMode(CENTER);
-//    drawSprites();
+    
+    // draw enemies;
     for(i=0; i<enemies.length; i++){
         tint(enemies[i].r,enemies[i].b,enemies[i].b,)
         drawSprite(enemies[i].thisSprite);
+        // add bonus score if player gets close to enemies
+        if(!enemies[i].scored){
+            if(enemies[i].thisSprite.position.y > player.position.y && abs(enemies[i].thisSprite.position.x - player.position.x) < 48){
+                print("TRUE");
+                enemies[i].scored = true;
+                score += 20
+            }
+        if(enemies[i].thisSprite.position.y > height - 50){enemies[i].scored = true}
+        }
     }
+    
+    // collision detection
+    if(crash == true){
+        print('crashed -- ', counterTwo);
+        counterTwo += 1 + velocity;
+        playerMoved = false;
+//        player.tint = 255,255,255, 50;
+//        print(player);
+        if(counterTwo > 180){
+            crash = false;
+            counterTwo = 0;
+            print('>>>>RESET<<<<<');
+        }
+    }else{
+        for(i=0; i<enemies.length; i++){
+            if(player.overlap(enemies[i].thisSprite) && playerMoved){
+                if(dist(enemies[i].thisSprite.position.x, enemies[i].thisSprite.position.y, player.position.x, player.position.y) < 52){
+                    print(crash, 'collision detected');
+                    velocity = 0;
+                    crash = true;
+                    lifeNum -= 1;
+                    print('lives updated')
+//                    playerMoved = false;
+                }
+            }
+        }
+        
+    }
+    
+    //draw player
     tint(255, 255, 255);
+    
     drawSprite(player);
-    print("lives = "+ lifeNum);
+    
+    // draw player HUD
     for(i=0; i<lifeNum;i++){
         drawSprite(lives[i]);
     }
     fill('orange');
     stroke("black");
-    score += 0.5 + velocity/2;
+        if(playerMoved){
+    score += (0.5 + velocity) * 0.02;
+        }
     textStyle(BOLD);
     textSize(20);
     text("score: " + round(score), 10, 20);
+    // end draw player HUD
     
 }
