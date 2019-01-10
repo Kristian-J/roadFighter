@@ -2,6 +2,7 @@
 let enemies = [];
 let lines = [];
 let player;
+let playerCarImgs = [];
 
 // player default values
 let playerX = 100;
@@ -85,7 +86,7 @@ function drawNewEnemy(){
     
     inceptionPoint = random(60 - velocity * 2, 120);
     counterOne = 0;
-    print('enemy created');
+//    print('enemy created');
 }
 function drawScenery(){
     return
@@ -138,6 +139,13 @@ function positionManager(){
 function keyManager(key){
     print('called', key);
     
+    //call menu
+    if(key == "m"){
+        print('menu has been called');
+        run = false;
+        print(run);
+    }
+    
     return
 }
 
@@ -147,9 +155,13 @@ function isInTransition(){
 }
 
 function preload() {
-    playerImg = loadImage("images/testing/tile002.png");
     enemyImg = loadImage("images/car004.png");
-//    print(playerImg);
+    for(i=0;i<9;i++){
+        tempImg = loadImage("images/testing/tile00"+i+".png");
+        append(playerCarImgs, tempImg);
+    }
+    playerImg = playerCarImgs[0];
+    print(playerCarImgs.length);
 //    sequenceAnimation = loadAnimation('images/heart/tile000.png', 'images/heart/tile007.png');
 }
 
@@ -167,13 +179,29 @@ function setup() {
         localCount++;
     }
     
+    // create player entity
     playerX = width/2;
     player = createSprite(playerX, height-100, 20, 40);
-//    player.addImage("images/car002.png", 35,50);
     playerImg.resize(40,0);
 //    player.rotation = -90;
     player.addImage(playerImg,50,40);
     drawLives();
+    
+    // create menu
+    mainDiv = createDiv();
+    menuHeading = createElement("h2","MENU");
+    menuHeading.parent(mainDiv);
+    seasonsDiv = createDiv();
+    createElement("h3","Choose a season").parent(seasonsDiv);
+    btn1 = createButton("Summer").parent(seasonsDiv);
+    btn2 = createButton("Autumn").parent(seasonsDiv);
+    btn3 = createButton("Winter").parent(seasonsDiv);
+    btn4 = createButton("Spring").parent(seasonsDiv);
+    carsSelection = createDiv();
+    createElement("h3","Choose your Car").parent(carsSelection);
+    
+    
+    
 }
 
 function draw() {
@@ -193,7 +221,7 @@ function draw() {
         enemies[i].thisSprite.setSpeed(1+ velocity, 90)
         if(enemies[i].thisSprite.position.y > height + 100){
             enemies.splice(i, 1); 
-            print('removed');
+//            print('removed');
         }
 //        print('updated')
     }
@@ -242,7 +270,7 @@ function draw() {
     
     // collision detection
     if(crash == true){
-        print('crashed -- ', counterTwo);
+//        print('crashed -- ', counterTwo);
         counterTwo += 1 + velocity;
         playerMoved = false;
 //        player.tint = 255,255,255, 50;
@@ -250,7 +278,7 @@ function draw() {
         if(counterTwo > 180){
             crash = false;
             counterTwo = 0;
-            print('>>>>RESET<<<<<');
+//            print('>>>>RESET<<<<<');
         }
     }else{
         for(i=0; i<enemies.length; i++){
