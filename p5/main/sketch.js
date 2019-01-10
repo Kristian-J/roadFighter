@@ -1,8 +1,13 @@
-// sprite set holders
+// sprite holders
 let enemies = [];
 let lines = [];
 let player;
+let fire;
+// image sets
+let heartImg = [];
 let playerCarImgs = [];
+let playerImg;
+let enemyImg;
 let fireAnimation;
 
 let bgImages = [];
@@ -28,14 +33,9 @@ let season = 1;
 let red = 11;
 let green = 102;
 let blue = 35
+
 // JSON file holder variable
 let data;
-
-
-// image sets
-let heartImg = [];
-let playerImg;
-let enemyImg;
 
 // flags
 let crash = Boolean;
@@ -136,7 +136,6 @@ function drawLives(){
         let temp = createSprite(pos, height - 20, 50, 50);
         temp.addAnimation('run', 'images/heart/tile000.png',  'images/heart/tile007.png' )
         temp.scale = 0.4;
-//        temp.tint('red');
         append(lives, temp);
         pos += 50;
     }
@@ -148,13 +147,13 @@ function positionManager(){
     if(keyIsDown(RIGHT_ARROW)){
         if(playerX < width - 120){playerX += (0 + velocity * 0.6)}
         if(!playerMoved){
-            playerMoved = true
+            playerMoved = true;
         }
     }
     if(keyIsDown(LEFT_ARROW)){
         if(playerX >  120){playerX -=  (0 + velocity * 0.6)}
         if(!playerMoved){
-            playerMoved = true
+            playerMoved = true;
         }
     }
     if(keyIsDown(UP_ARROW)){
@@ -171,21 +170,20 @@ function keyManager(key){
     
     //call menu
     if(key == "m"){
-        print('menu has been called');
+        //sets the menu switch flag
         run = false;
-        print(run);
     }
     //play music
     if(key == "p"){
         print('music has been called');
-        menuSound.setVolume(0.3);
+        menuSound.setVolume(0.2);
         menuSound.play();
     }
     return
 }
 //return to game. takes input from menu button
 function returnToGame(){
-    run = true
+    run = true;
     return
 }
 // restarts the game and resets default core values. takes input from game-end screen.
@@ -213,7 +211,7 @@ function preload() {
     
     // imports scenery images
     for(i=1; i< 5; i++){
-        tempImg = loadImage("images/trees/tile00"+i+".png")
+        tempImg = loadImage("images/trees/tile00"+i+".png");
         tempImg.resize(50,0);
         append(bgImages, tempImg);
     }
@@ -250,6 +248,7 @@ function setup() {
     
     // call to create player lives entities array
     drawLives();
+    
     // creates fire sprite to be used in collision event handling
     fire = createSprite( -100, 100, 20,20);
     fire.addAnimation("run",fireAnimation);
@@ -271,6 +270,7 @@ function setup() {
     sel.option("Winter");
     sel.option("Spring");
     sel.changed(setSeason);
+    // sets default decoration image
     bgImage = bgImages[0];
     
     //car selection implementation. incomplete and not used in this version
@@ -340,18 +340,15 @@ function draw() {
     
     for(i = 0; i<decorations.length; i++){
         decorations[i].setSpeed(velocity, 90);
-//        print(decorations[i].position.y);
-//        print(decorations[i]);
         if(decorations[i].position.y > height + 68) {
             decorations.splice(i, 1);
         }
         drawSprite(decorations[i]);
     }
     
-//    drawScenery();
-    
     // draw enemies;
     for(i=0; i<enemies.length; i++){
+        // set tint value for new enemy sprite
         tint(enemies[i].r,enemies[i].b,enemies[i].b,)
         drawSprite(enemies[i].thisSprite);
         // add bonus score if player gets close to enemies
@@ -359,17 +356,21 @@ function draw() {
             if(enemies[i].thisSprite.position.y > player.position.y && abs(enemies[i].thisSprite.position.x - player.position.x) < 48){
                 print("TRUE");
                 enemies[i].scored = true;
-                score += 20
+                score += 20;
             }
+        // disable additional scoring on cars that have left the screen
         if(enemies[i].thisSprite.position.y > height - 50){enemies[i].scored = true}
         }
     }
     
+    // control to block canvas and menu if the game has been lost
     if(gameOver == true){
         mainDiv.hide();
         thisCanvas.hide();
         gameOverDiv.show();
     }else{
+        // display canvas and run the game if main and game-end menu are not active
+        // collision detection is in this scope to ensure player lives are not lost while menu is active
         if(run == true){
             mainDiv.hide();
             thisCanvas.show();
@@ -379,29 +380,27 @@ function draw() {
                 }
             // collision detection
             if(crash == true){
-        //        print('crashed -- ', counterTwo);
                 counterTwo += 1 + velocity;
                 playerMoved = false;
-        //        player.tint = 255,255,255, 50;
-        //        print(player);
                 if(counterTwo > 180){
                     crash = false;
                     counterTwo = 0;
+                    // return the player sprite after the crash cooldown has ended
                     fire.position.x = -100; fire.position.y = 100;
                     player.visible = true;
-        //            print('>>>>RESET<<<<<');
                 }else{
+                    // replace player sprite with fire sprite if crash has occured
                     player.visible = false;
                     fire.position.x = player.position.x; 
-                    fire.position.y = player.position.y - 25
+                    fire.position.y = player.position.y - 25;
                 }
             }else{
+                // actual collision detection with event handling
                 for(i=0; i<enemies.length; i++){
                     if(player.overlap(enemies[i].thisSprite) && playerMoved){
                         if(dist(enemies[i].thisSprite.position.x, enemies[i].thisSprite.position.y, player.position.x, player.position.y) < 52){
                             // action taken on collision event
                             print(crash, 'collision detected');
-                            player.addAnimation('run',fireAnimation);
                             // speed reset
                             velocity = 0;
                             // event flaged
@@ -411,13 +410,14 @@ function draw() {
                             if(lifeNum == 0){gameOver = true}
                             // enemy removed
                             enemies.splice(i, 1);
-                            print('lives updated')
+                            print('lives updated');
                         }
                     }
                 }
 
             }
         }else{
+            // shows the menu and hides other elements until player returns to game
             mainDiv.show();
             guideDiv.hide();
             thisCanvas.hide();
@@ -426,7 +426,8 @@ function draw() {
     }
     
     
-    //draw player
+    // draw player
+    // reset tint
     tint(255, 255, 255);
     
     drawSprite(player);
